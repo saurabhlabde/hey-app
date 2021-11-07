@@ -1,0 +1,19 @@
+{
+        "cSpell.ignoreWords": [
+                "Lastname",
+                "Pressable",
+                "ellipsizeMode",
+                "firstname"
+        ],
+        "files.exclude": {
+                "node_modules": true,
+                ".vscode": true,
+                ".expo-shared": true,
+                ".expo": true,
+                "yarn-error.log": true,
+                "yarn.lock": true,
+                "babel.config.js": true,
+                "components/__tests__/StyledText-test.js": true
+        },
+        "workspace.isHidden": true
+}

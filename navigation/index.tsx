@@ -1,107 +1,198 @@
-/**
- * If you are not familiar with React Navigation, refer to the "Fundamentals" guide:
- * https://reactnavigation.org/docs/getting-started
- *
- */
-import { FontAwesome } from '@expo/vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import * as React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useQuery } from "@apollo/client";
+import { ActivityIndicator, ColorSchemeName } from "react-native";
+import { Icon } from "react-native-eva-icons";
 
-import Colors from '../constants/Colors';
-import useColorScheme from '../hooks/useColorScheme';
-import ModalScreen from '../screens/ModalScreen';
-import NotFoundScreen from '../screens/NotFoundScreen';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
-import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
-import LinkingConfiguration from './LinkingConfiguration';
+import Colors from "../constants/Colors";
+import useColorScheme from "../hooks/useColorScheme";
 
-export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+import LinkingConfiguration from "./LinkingConfiguration";
+
+// screen
+import { RegisterPage } from "../screens/Register";
+import { LoginPage } from "../screens/Login";
+import { MessagePage } from "../screens/Message";
+import { ChatRoomPage } from "../screens/ChatRoom";
+import { NotificationPage } from "../screens/Notification";
+import { LogoutPage } from "../screens/Logout";
+import { ProfilePage } from "../screens/Profile";
+import { DiscoverPage } from "../screens/Discover";
+
+// gql
+import { TOKEN_CHECK } from "../graphql/auth/tokenCheck";
+
+export default function Navigation({
+  colorScheme,
+}: {
+  colorScheme: ColorSchemeName;
+}) {
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+    >
       <RootNavigator />
     </NavigationContainer>
   );
 }
 
-/**
- * A root stack navigator is often used for displaying modals on top of all other content.
- * https://reactnavigation.org/docs/modal
- */
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator();
 
 function RootNavigator() {
+  const [auth, setAuth] = React.useState<boolean>(false);
+
+  const {
+    data: tokenCheckData,
+    loading: tokenCheckLoading,
+    error: tokenCheckError,
+  } = useQuery(TOKEN_CHECK);
+
+  React.useEffect(() => {
+    if (tokenCheckData?.tokenCheck) {
+      setAuth(true);
+    }
+  }, [tokenCheckData]);
+
+  React.useEffect(() => {
+    if (tokenCheckLoading) {
+      <ActivityIndicator
+        color="orange"
+        size="large"
+        style={{
+          height: "100%",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      />;
+    }
+  }, [tokenCheckLoading]);
+
+  const initialPage = auth ? "Home" : "LoginPage";
+
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName={initialPage}
+    >
+      <Stack.Screen
+        name="Root"
+        component={BottomTabNavigator}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Group screenOptions={{ presentation: "modal" }}>
+        <Stack.Screen name="RegisterPage" component={RegisterPage} />
+        <Stack.Screen name="LoginPage" component={LoginPage} />
+        <Stack.Screen name="ChatRoomPage" component={ChatRoomPage} />
       </Stack.Group>
     </Stack.Navigator>
   );
 }
 
-/**
- * A bottom tab navigator displays tab buttons on the bottom of the display to switch screens.
- * https://reactnavigation.org/docs/bottom-tab-navigator
- */
-const BottomTab = createBottomTabNavigator<RootTabParamList>();
+const BottomTab = createBottomTabNavigator();
 
 function BottomTabNavigator() {
   const colorScheme = useColorScheme();
+
+  const iconSize = 28;
+  const iconColor = "#3366FF";
 
   return (
     <BottomTab.Navigator
       initialRouteName="TabOne"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
-      }}>
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          height: 60,
+        },
+      }}
+    >
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneScreen}
-        options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Modal')}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}>
-              <FontAwesome
-                name="info-circle"
-                size={25}
-                color={Colors[colorScheme].text}
-                style={{ marginRight: 15 }}
-              />
-            </Pressable>
-          ),
-        })}
-      />
-      <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoScreen}
+        name="Home"
+        component={MessagePage}
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              name={focused ? "home" : "home-outline"}
+              width={iconSize}
+              height={iconSize}
+              fill={iconColor}
+            />
+          ),
+        }}
+      />
+
+      <BottomTab.Screen
+        name="Notification"
+        component={NotificationPage}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              name={focused ? "bell" : "bell-outline"}
+              width={iconSize}
+              height={iconSize}
+              fill={iconColor}
+            />
+          ),
+        }}
+      />
+
+      <BottomTab.Screen
+        name="Discover"
+        component={DiscoverPage}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              name={focused ? "compass" : "compass-outline"}
+              width={iconSize}
+              height={iconSize}
+              fill={iconColor}
+            />
+          ),
+        }}
+      />
+
+      <BottomTab.Screen
+        name="Profile"
+        component={ProfilePage}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              name={focused ? "person" : "person-outline"}
+              width={iconSize}
+              height={iconSize}
+              fill={iconColor}
+            />
+          ),
+        }}
+      />
+
+      <BottomTab.Screen
+        name="Logout"
+        component={LogoutPage}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              name={focused ? "log-out" : "log-out-outline"}
+              width={iconSize}
+              height={iconSize}
+              fill={iconColor}
+            />
+          ),
         }}
       />
     </BottomTab.Navigator>
   );
-}
-
-/**
- * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
- */
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={30} style={{ marginBottom: -3 }} {...props} />;
 }

@@ -1,0 +1,114 @@
+import * as React from "react";
+import { StyleSheet } from "react-native";
+import { Icon } from "react-native-eva-icons";
+import { Card, Text, View, TouchableOpacity } from "react-native-ui-lib";
+
+export const TopUserInfo = ({ navigation }: any) => {
+  return (
+    <View style={[styles.card, styles.userCard]}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => {
+          return navigation.goBack();
+        }}
+      >
+        <View style={styles.cardBackButton}>
+          <Icon
+            name={"arrow-back-outline"}
+            width={26}
+            height={26}
+            fill={"#3366FF"}
+          />
+        </View>
+      </TouchableOpacity>
+
+      <View style={[styles.card, styles.cardInfo]}>
+        <View style={[styles.card, styles.cardInfoLeft]}>
+          <View style={styles.cardUserProfile}>
+            <Card.Image
+              style={styles.userProfileImage}
+              source={{
+                uri: "https://cdn.dribbble.com/users/4107199/avatars/normal/7a8008f93bf0f9a6ef8412428753c17e.jpg?1589497766",
+              }}
+            />
+          </View>
+
+          <View style={[styles.cardInfoRight]}>
+            <View style={styles.cardUserInfo}>
+              <Text style={styles.userInfoText}>sumiya roy</Text>
+            </View>
+
+            <View style={styles.cardUserStatus}>
+              <Text style={styles.userStatusText}>online</Text>
+            </View>
+          </View>
+        </View>
+
+        <View></View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: "row",
+  },
+
+  userCard: {
+    backgroundColor: "#ffffff",
+    padding: 10,
+    paddingTop: 30,
+    alignItems: "center",
+    overflow: "hidden",
+  },
+
+  cardLeft: {},
+
+  cardRight: {
+    alignItems: "center",
+  },
+
+  cardBackButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 50,
+    width: 50,
+    borderRadius: 50,
+  },
+
+  cardInfo: {
+    marginLeft: 5,
+  },
+
+  cardInfoLeft: {},
+
+  cardInfoRight: {
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+
+  cardUserProfile: {},
+
+  cardUserInfo: {},
+
+  cardUserStatus: {},
+
+  userProfileImage: {
+    height: 45,
+    width: 45,
+    borderRadius: 50,
+    resizeMode: "cover",
+  },
+
+  userInfoText: {
+    fontSize: 15,
+    fontWeight: "bold",
+    textTransform: "capitalize",
+  },
+
+  userStatusText: {
+    fontSize: 13,
+    color: "#3366FF",
+  },
+});
