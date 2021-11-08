@@ -1,6 +1,7 @@
 import * as React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { Card, Text, View } from "react-native-ui-lib";
+import Moment from "react-moment";
 
 interface IChatUser {
   navigation: any;
@@ -71,14 +72,32 @@ export const ChatUser: React.FC<IChatUser> = ({ navigation, props }) => {
           <View style={[styles.cardMessage, styles.card]}>
             {chatRoom.lastMessage && (
               <>
-                <View style={styles.cardLastMessage}>
-                  <Text style={styles.lastMessageText}>
-                    this my last message
-                  </Text>
-                </View>
-                <View style={styles.cardTiming}>
-                  <Text style={styles.messageTimeText}>Today 12:25</Text>
-                </View>
+                {chatRoom?.lastMessage?.content && (
+                  <View style={styles.cardLastMessage}>
+                    <Text style={styles.lastMessageText}>
+                      {chatRoom.lastMessage.content}
+                    </Text>
+                  </View>
+                )}
+
+                {chatRoom?.lastMessage?.createdAt && (
+                  <View style={styles.cardTiming}>
+                    <Moment
+                      element={Text}
+                      interval={30000}
+                      local
+                      fromNow
+                      ago
+                      style={{
+                        color: "#3a3939",
+                        fontSize: 13,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {chatRoom?.lastMessage?.createdAt}
+                    </Moment>
+                  </View>
+                )}
               </>
             )}
           </View>

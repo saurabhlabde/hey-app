@@ -1,6 +1,6 @@
 import * as React from "react";
 import { FlatList, ActivityIndicator } from "react-native";
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 
 // component
 import { MessageCard } from "../components/MessageCard";
@@ -11,6 +11,7 @@ import { View } from "react-native-ui-lib";
 // gql
 import { USER } from "../graphql/main/user";
 import { MESSAGES } from "../graphql/main/messages";
+import { MESSAGE_SUBSCRIPTION } from "../graphql/main/messageSubscription";
 
 export const ChatRoomPage = ({ navigation, route }: any) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
@@ -36,6 +37,16 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
     },
   });
 
+  const {
+    data: messageSubscriptionData,
+    loading: messageSubscriptionLoading,
+    error: messageSubscriptionError,
+  } = useSubscription(MESSAGE_SUBSCRIPTION, {
+    variables: {
+      roomId: route?.params?.roomId,
+    },
+  });
+
   React.useEffect(() => {
     const loading = userLoading || messagesLoading;
 
@@ -47,6 +58,22 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
       setMessages([...messagesData.getMessages]);
     }
   }, [messagesData]);
+
+  // message subscription data
+  React.useEffect(() => {
+    if (messageSubscriptionData?.getMessageSubscription) {
+      const findMessageId = messages.find((mess: any) => {
+        return mess.id === messageSubscriptionData?.getMessageSubscription?.id;
+      });
+
+      if (!findMessageId) {
+        return setMessages([
+          messageSubscriptionData.getMessageSubscription,
+          ...messages,
+        ]);
+      }
+    }
+  }, [messageSubscriptionData]);
 
   if (isLoading) {
     return (
@@ -102,7 +129,7 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
           backgroundColor: "#ffffff",
         }}
       >
-        <AddMessageInput />
+        <AddMessageInput roomId={route?.params?.roomId} />
       </View>
     </>
   );

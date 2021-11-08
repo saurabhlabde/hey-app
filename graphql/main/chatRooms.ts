@@ -22,8 +22,9 @@ export const CHAT_ROOM = gql`
           image
           status
           chatRoomID
-          createdAtIso
           userId
+          createdAtIso
+          createdAt
         }
       }
     }

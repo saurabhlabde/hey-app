@@ -72,7 +72,7 @@ export const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     paddingLeft: 20,
-    paddingRight: 10,
+    paddingRight: 20,
     marginTop: 5,
     marginBottom: 5,
     marginLeft: 10,
@@ -85,7 +85,6 @@ export const styles = StyleSheet.create({
   cardBottom: {
     marginTop: 5,
     justifyContent: "flex-end",
-    paddingRight: 10,
     alignItems: "center",
   },
 

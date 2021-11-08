@@ -1,9 +1,55 @@
 import * as React from "react";
-import { StyleSheet } from "react-native";
-import { Icon } from "react-native-eva-icons";
 import { View, TextField } from "react-native-ui-lib";
+import { StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import { Icon } from "react-native-eva-icons";
+import { useMutation } from "@apollo/client";
 
-export const AddMessageInput = () => {
+// gql
+import { CREATE_MESSAGE } from "../graphql/main/createMessage";
+
+interface IAddMessageInput {
+  roomId: number;
+}
+
+export const AddMessageInput: React.FC<IAddMessageInput> = ({ roomId }) => {
+  const [text, setText] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  const [
+    createMessageHandel,
+    {
+      data: createMessageData,
+      loading: createMessageLoading,
+      error: createMessageError,
+    },
+  ] = useMutation(CREATE_MESSAGE, {
+    variables: {
+      content: text,
+      image: null,
+      chatRoomId: roomId,
+    },
+  });
+
+  // loading
+  React.useEffect(() => {
+    const loading = createMessageLoading;
+
+    setIsLoading(loading);
+  }, [createMessageLoading]);
+
+  // add message data
+  React.useEffect(() => {
+    if (createMessageData) {
+      setText("");
+    }
+  }, [createMessageData]);
+
+  const addMessageHandel = () => {
+    if (text?.trim() !== "") {
+      return createMessageHandel();
+    }
+  };
+
   return (
     <View style={[styles.card, styles.cardMessageAdd]}>
       <View style={[styles.cardLeft, styles.card]}>
@@ -16,18 +62,27 @@ export const AddMessageInput = () => {
             placeholder="Type something"
             style={[styles.inputAddMessage]}
             hideUnderline={true}
+            value={text}
+            onChangeText={setText}
           />
-        </View>
-
-        <View style={[styles.buttonIcon]}>
-          <Icon name={"smiling-face"} width={30} height={30} fill={"#3366FF"} />
         </View>
       </View>
 
       <View style={[styles.cardRight]}>
-        <View style={[styles.buttonAdd]}>
-          <Icon name={"rewind-right"} width={30} height={30} fill={"#ffffff"} />
-        </View>
+        <TouchableOpacity activeOpacity={0.8} onPress={addMessageHandel}>
+          <View style={[styles.buttonAdd]}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Icon
+                name={"rewind-right"}
+                width={30}
+                height={30}
+                fill={"#ffffff"}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -64,7 +119,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 5,
     paddingRight: 5,
-    paddingTop: 2,
+    paddingTop: 4,
   },
 
   inputAddMessage: {
