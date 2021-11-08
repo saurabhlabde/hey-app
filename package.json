@@ -46,7 +46,8 @@
     "react-native-svg": "^12.1.1",
     "react-native-ui-lib": "^6.2.1",
     "react-native-web": "0.17.1",
-    "subscriptions-transport-ws": "^0.11.0"
+    "subscriptions-transport-ws": "^0.11.0",
+    "use-debounce": "^7.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

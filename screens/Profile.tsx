@@ -1,23 +1,64 @@
 import * as React from "react";
-import { StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card, Text, View, Button } from "react-native-ui-lib";
+import { useQuery } from "@apollo/client";
+
+// gql
+import { USER } from "../graphql/main/user";
 
 export const ProfilePage = () => {
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+
+  const {
+    data: userData,
+    loading: userLoading,
+    error: userError,
+  } = useQuery(USER, {
+    variables: {
+      id: null,
+    },
+  });
+
+  React.useEffect(() => {
+    const loading = userLoading;
+
+    setIsLoading(loading);
+  }, [userLoading]);
+
+  if (isLoading) {
+    return (
+      <ActivityIndicator
+        color="blue"
+        size="large"
+        style={{
+          height: 100,
+          width: 100,
+        }}
+      />
+    );
+  }
+
+  const user = userData?.getUser;
+
   return (
     <SafeAreaView>
       <View style={styles.profile}>
         <View style={styles.cardProfile}>
           <Card.Image
             source={{
-              uri: "https://cdn.dribbble.com/users/102849/avatars/normal/a51d3414ef390fead573391b9160f755.jpg?1481289442",
+              uri: user?.profileImage
+                ? user.profileImage
+                : "https://cdn.dribbble.com/users/102849/avatars/normal/a51d3414ef390fead573391b9160f755.jpg?1481289442",
             }}
             style={styles.userProfileImage}
           />
         </View>
 
         <View style={styles.cardUserInfo}>
-          <Text style={styles.userInfoText}>alex bender</Text>
+          <Text style={styles.userInfoText}>
+            {user?.firstname} {user?.lastname}
+          </Text>
         </View>
 
         <View style={styles.cardButton}>

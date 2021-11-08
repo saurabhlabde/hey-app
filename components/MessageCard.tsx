@@ -3,15 +3,29 @@ import { StyleSheet } from "react-native";
 import { Icon } from "react-native-eva-icons";
 import { Text, View } from "react-native-ui-lib";
 
-export const MessageCard = () => {
+interface IMessageCard {
+  props: {
+    id: number;
+    User: any;
+    chatRoomID: number;
+    content: string | null;
+    image: string | null;
+    replyToMessageID: string | null;
+    status: string;
+  };
+}
+
+export const MessageCard: React.FC<IMessageCard> = ({ props }) => {
+  const { User, chatRoomID, content, id, image, replyToMessageID, status } =
+    props;
+
   return (
     <View style={styles.cardMessage}>
-      <View style={styles.cardContent}>
-        <Text style={styles.contentText}>
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Itaque earum
-          labore voluptatibus
-        </Text>
-      </View>
+      {content && (
+        <View style={styles.cardContent}>
+          <Text style={styles.contentText}>{content}</Text>
+        </View>
+      )}
 
       <View style={[styles.card, styles.cardBottom]}>
         <View style={styles.cardTime}>
@@ -19,12 +33,28 @@ export const MessageCard = () => {
         </View>
 
         <View style={styles.cardStatus}>
-          <Icon
-            name={"done-all-outline"}
-            width={18}
-            height={18}
-            fill={"#3366FF"}
-          />
+          {status === "SEND" ? (
+            <Icon
+              name={"checkmark-outline"}
+              width={18}
+              height={18}
+              fill={"#3c3e46"}
+            />
+          ) : status === "DELIVERED" ? (
+            <Icon
+              name={"done-all-outline"}
+              width={18}
+              height={18}
+              fill={"#3c3e46"}
+            />
+          ) : status === "READ" ? (
+            <Icon
+              name={"done-all-outline"}
+              width={18}
+              height={18}
+              fill={"#3366FF"}
+            />
+          ) : null}
         </View>
       </View>
     </View>

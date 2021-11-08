@@ -46,6 +46,7 @@ export default function Navigation({
 const Stack = createNativeStackNavigator();
 
 function RootNavigator() {
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [auth, setAuth] = React.useState<boolean>(false);
 
   const {
@@ -55,34 +56,27 @@ function RootNavigator() {
   } = useQuery(TOKEN_CHECK);
 
   React.useEffect(() => {
+    setIsLoading(tokenCheckLoading);
+  }, [tokenCheckLoading]);
+
+  React.useEffect(() => {
     if (tokenCheckData?.tokenCheck) {
       setAuth(true);
     }
   }, [tokenCheckData]);
 
-  React.useEffect(() => {
-    if (tokenCheckLoading) {
-      <ActivityIndicator
-        color="orange"
-        size="large"
-        style={{
-          height: "100%",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      />;
-    }
-  }, [tokenCheckLoading]);
+  if (isLoading) {
+    <ActivityIndicator color="blue" size="large" />;
+  }
 
-  const initialPage = auth ? "Home" : "LoginPage";
+  const initialPage = !isLoading ? (auth ? "Home" : "LoginPage") : null;
 
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
       }}
-      initialRouteName={initialPage}
+      initialRouteName={`${initialPage}`}
     >
       <Stack.Screen
         name="Root"
@@ -94,6 +88,7 @@ function RootNavigator() {
         <Stack.Screen name="RegisterPage" component={RegisterPage} />
         <Stack.Screen name="LoginPage" component={LoginPage} />
         <Stack.Screen name="ChatRoomPage" component={ChatRoomPage} />
+        <Stack.Screen name="Home" component={MessagePage} />
       </Stack.Group>
     </Stack.Navigator>
   );

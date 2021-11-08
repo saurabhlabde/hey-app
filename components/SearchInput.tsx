@@ -3,7 +3,12 @@ import { StyleSheet } from "react-native";
 import { Icon } from "react-native-eva-icons";
 import { Card, Text, View, TextField } from "react-native-ui-lib";
 
-export const SearchInput = () => {
+interface ISearchInput {
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export const SearchInput: React.FC<ISearchInput> = ({ value, setValue }) => {
   return (
     <View style={[styles.card, styles.cardSearch]}>
       <View style={styles.cardInput}>
@@ -11,6 +16,8 @@ export const SearchInput = () => {
           placeholder="Discover people"
           style={styles.searchInput}
           hideUnderline={true}
+          value={value}
+          onChangeText={setValue}
         />
       </View>
 
@@ -29,10 +36,10 @@ export const styles = StyleSheet.create({
   cardSearch: {
     height: 50,
     backgroundColor: "#f6f0f0",
-    borderRadius: 20,
+    borderRadius: 15,
     marginLeft: 10,
     marginRight: 10,
-    paddingRight: 10,
+    paddingRight: 8,
     paddingLeft: 20,
     alignItems: "center",
     marginBottom: 20,

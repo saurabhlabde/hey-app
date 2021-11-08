@@ -3,7 +3,19 @@ import { StyleSheet } from "react-native";
 import { Icon } from "react-native-eva-icons";
 import { Card, Text, View, TouchableOpacity } from "react-native-ui-lib";
 
-export const TopUserInfo = ({ navigation }: any) => {
+interface ITopUserInfo {
+  navigation: any;
+  props: {
+    id: number;
+    firstname: string;
+    lastname: string;
+    profileImage: string;
+  };
+}
+
+export const TopUserInfo: React.FC<ITopUserInfo> = ({ navigation, props }) => {
+  const { id, firstname, lastname, profileImage } = props;
+
   return (
     <View style={[styles.card, styles.userCard]}>
       <TouchableOpacity
@@ -28,14 +40,18 @@ export const TopUserInfo = ({ navigation }: any) => {
             <Card.Image
               style={styles.userProfileImage}
               source={{
-                uri: "https://cdn.dribbble.com/users/4107199/avatars/normal/7a8008f93bf0f9a6ef8412428753c17e.jpg?1589497766",
+                uri: profileImage
+                  ? profileImage
+                  : "https://cdn.dribbble.com/users/4107199/avatars/normal/7a8008f93bf0f9a6ef8412428753c17e.jpg?1589497766",
               }}
             />
           </View>
 
           <View style={[styles.cardInfoRight]}>
             <View style={styles.cardUserInfo}>
-              <Text style={styles.userInfoText}>sumiya roy</Text>
+              <Text style={styles.userInfoText}>
+                {firstname} {lastname}
+              </Text>
             </View>
 
             <View style={styles.cardUserStatus}>

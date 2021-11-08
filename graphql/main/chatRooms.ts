@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const CHATROOM = gql`
+export const CHAT_ROOM = gql`
   query {
     getChatRoom {
       id
