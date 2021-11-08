@@ -7,8 +7,25 @@ import { useQuery } from "@apollo/client";
 // gql
 import { USER } from "../graphql/main/user";
 
-export const ProfilePage = () => {
+interface IProfilePage {
+  navigation: any;
+  route: any;
+}
+
+export const ProfilePage: React.FC<IProfilePage> = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [showMessageButton, setShowMessageButton] =
+    React.useState<boolean>(false);
+
+  const {
+    data: activeUserData,
+    loading: activeUserLoading,
+    error: activeUserError,
+  } = useQuery(USER, {
+    variables: {
+      id: null,
+    },
+  });
 
   const {
     data: userData,
@@ -16,15 +33,27 @@ export const ProfilePage = () => {
     error: userError,
   } = useQuery(USER, {
     variables: {
-      id: null,
+      id: route?.params?.userId ? route.params.userId : null,
     },
   });
 
+  // loading
   React.useEffect(() => {
-    const loading = userLoading;
+    const loading = userLoading || activeUserLoading;
 
     setIsLoading(loading);
-  }, [userLoading]);
+  }, [userLoading, activeUserLoading]);
+
+  React.useEffect(() => {
+    if (
+      userData &&
+      activeUserData &&
+      route?.params?.userId &&
+      activeUserData?.getUser?.id !== route.params.userId
+    ) {
+      setShowMessageButton(true);
+    }
+  }, [userData, activeUserData]);
 
   if (isLoading) {
     return (
@@ -61,16 +90,18 @@ export const ProfilePage = () => {
           </Text>
         </View>
 
-        <View style={styles.cardButton}>
-          <Button
-            backgroundColor="#0062ff"
-            label="Message"
-            labelStyle={{ fontWeight: "600", fontSize: 17 }}
-            enableShadow
-            activeOpacity={0.8}
-            style={styles.messageButton}
-          />
-        </View>
+        {showMessageButton && (
+          <View style={styles.cardButton}>
+            <Button
+              backgroundColor="#0062ff"
+              label="Message"
+              labelStyle={{ fontWeight: "600", fontSize: 17 }}
+              enableShadow
+              activeOpacity={0.8}
+              style={styles.messageButton}
+            />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

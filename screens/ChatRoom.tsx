@@ -13,9 +13,10 @@ import { USER } from "../graphql/main/user";
 import { MESSAGES } from "../graphql/main/messages";
 import { MESSAGE_SUBSCRIPTION } from "../graphql/main/messageSubscription";
 
+import { cache } from "../apollo/config";
+
 export const ChatRoomPage = ({ navigation, route }: any) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
-  const [messages, setMessages] = React.useState<Array<any>>([]);
 
   const {
     data: userData,
@@ -53,13 +54,8 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
     setIsLoading(loading);
   }, [userLoading, messagesLoading]);
 
-  React.useEffect(() => {
-    if (messagesData) {
-      setMessages([...messagesData.getMessages]);
-    }
-  }, [messagesData]);
-
   // message subscription data
+
   React.useEffect(() => {
     if (messageSubscriptionData?.getMessageSubscription) {
       const findMessageId = messages.find((mess: any) => {
@@ -67,10 +63,25 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
       });
 
       if (!findMessageId) {
-        return setMessages([
-          messageSubscriptionData.getMessageSubscription,
-          ...messages,
-        ]);
+        const data: any = cache.readQuery({
+          query: MESSAGES,
+          variables: {
+            roomId: route?.params?.roomId,
+          },
+        });
+
+        cache.writeQuery({
+          query: MESSAGES,
+          data: {
+            getMessages: [
+              messageSubscriptionData.getMessageSubscription,
+              ...data.getMessages,
+            ],
+          },
+          variables: {
+            roomId: route?.params?.roomId,
+          },
+        });
       }
     }
   }, [messageSubscriptionData]);
@@ -89,6 +100,7 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
   }
 
   const userInfo = userData?.getUser;
+  const messages = messagesData.getMessages;
 
   return (
     <>

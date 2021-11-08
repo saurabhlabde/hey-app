@@ -42,14 +42,21 @@ export const TopHeader: React.FC<ITopHeader> = ({ props, navigation }) => {
         <View style={styles.card}>
           <View style={styles.card}>
             <View style={styles.imageCard}>
-              <Card.Image
-                style={styles.profileImage}
-                source={{
-                  uri: profileImage
-                    ? profileImage
-                    : "https://cdn.dribbble.com/users/102849/avatars/normal/a51d3414ef390fead573391b9160f755.jpg?1481289442",
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  return navigation.navigate("Profile");
                 }}
-              />
+              >
+                <Card.Image
+                  style={styles.profileImage}
+                  source={{
+                    uri: profileImage
+                      ? profileImage
+                      : "https://cdn.dribbble.com/users/102849/avatars/normal/a51d3414ef390fead573391b9160f755.jpg?1481289442",
+                  }}
+                />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.infoCard}>

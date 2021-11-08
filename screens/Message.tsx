@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList } from "react-native";
 import { View } from "react-native-ui-lib";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@apollo/client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // component
 import { TopHeader } from "../components/TopHeader";
@@ -30,6 +31,16 @@ export const MessagePage = ({ navigation }: any) => {
     loading: chatRoomLoading,
     error: chatRoomError,
   } = useQuery(CHAT_ROOM);
+
+  React.useEffect(() => {
+    (async () => {
+      const isAuth = await AsyncStorage.getItem("@auth_token");
+
+      if (!isAuth) {
+        return navigation.navigate("LoginPage");
+      }
+    })();
+  }, [userData, chatRoomData]);
 
   React.useEffect(() => {
     const loading = userLoading || chatRoomLoading;
@@ -70,7 +81,9 @@ export const MessagePage = ({ navigation }: any) => {
         }}
         keyExtractor={(item) => item.id.toString()}
         ListHeaderComponent={() => {
-          return <TopHeader props={topHeaderData} navigation={navigation} />;
+          return topHeaderData ? (
+            <TopHeader props={topHeaderData} navigation={navigation} />
+          ) : null;
         }}
         ListFooterComponent={
           <View

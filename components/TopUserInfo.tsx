@@ -37,14 +37,23 @@ export const TopUserInfo: React.FC<ITopUserInfo> = ({ navigation, props }) => {
       <View style={[styles.card, styles.cardInfo]}>
         <View style={[styles.card, styles.cardInfoLeft]}>
           <View style={styles.cardUserProfile}>
-            <Card.Image
-              style={styles.userProfileImage}
-              source={{
-                uri: profileImage
-                  ? profileImage
-                  : "https://cdn.dribbble.com/users/4107199/avatars/normal/7a8008f93bf0f9a6ef8412428753c17e.jpg?1589497766",
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                return navigation.navigate("Profile", {
+                  userId: id,
+                });
               }}
-            />
+            >
+              <Card.Image
+                style={styles.userProfileImage}
+                source={{
+                  uri: profileImage
+                    ? profileImage
+                    : "https://cdn.dribbble.com/users/4107199/avatars/normal/7a8008f93bf0f9a6ef8412428753c17e.jpg?1589497766",
+                }}
+              />
+            </TouchableOpacity>
           </View>
 
           <View style={[styles.cardInfoRight]}>
