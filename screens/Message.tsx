@@ -12,9 +12,16 @@ import { ChatUser } from "../components/ChatUser";
 // gql
 import { USER } from "../graphql/main/user";
 import { CHAT_ROOM } from "../graphql/main/chatRooms";
+import { TOKEN_CHECK } from "../graphql/auth/tokenCheck";
 
 export const MessagePage = ({ navigation }: any) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
+
+  const {
+    data: tokenCheckData,
+    loading: tokenCheckLoading,
+    error: tokenCheckError,
+  } = useQuery(TOKEN_CHECK);
 
   const {
     data: userData,
@@ -33,20 +40,19 @@ export const MessagePage = ({ navigation }: any) => {
   } = useQuery(CHAT_ROOM);
 
   React.useEffect(() => {
-    (async () => {
-      const isAuth = await AsyncStorage.getItem("@auth_token");
-
-      if (!isAuth) {
-        return navigation.navigate("LoginPage");
-      }
-    })();
-  }, [userData, chatRoomData]);
-
-  React.useEffect(() => {
-    const loading = userLoading || chatRoomLoading;
+    const loading = userLoading || chatRoomLoading || tokenCheckLoading;
 
     setIsLoading(loading);
-  }, [userLoading, chatRoomLoading]);
+  }, [userLoading, chatRoomLoading, tokenCheckLoading]);
+
+  React.useEffect(() => {
+    if (!isLoading) {
+      console.log(tokenCheckData?.tokenCheck, "tokenCheckData");
+      if (!tokenCheckData?.tokenCheck) {
+        navigation.navigate("LoginPage");
+      }
+    }
+  }, [tokenCheckData]);
 
   if (isLoading) {
     return (

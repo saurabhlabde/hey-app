@@ -7,6 +7,7 @@ export const USER = gql`
       firstname
       lastname
       profileImage
+      lastOnlineAt
     }
   }
 `;

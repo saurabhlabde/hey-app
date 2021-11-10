@@ -1,6 +1,7 @@
 import * as React from "react";
 import { FlatList, ActivityIndicator } from "react-native";
-import { useQuery, useSubscription } from "@apollo/client";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
+import moment from "moment";
 
 // component
 import { MessageCard } from "../components/MessageCard";
@@ -11,12 +12,26 @@ import { View } from "react-native-ui-lib";
 // gql
 import { USER } from "../graphql/main/user";
 import { MESSAGES } from "../graphql/main/messages";
+import { MESSAGE_UPDATE_STATUS } from "../graphql/main/messageUpdateStatus";
+import { UPDATE_LAST_USER_ONLINE } from "../graphql/main/updateLastUserOnline";
 import { MESSAGE_SUBSCRIPTION } from "../graphql/main/messageSubscription";
+import { LAST_USER_ONLINE_SUBSCRIPTION } from "../graphql/main/lastUserOnlineSubscription";
 
 import { cache } from "../apollo/config";
 
 export const ChatRoomPage = ({ navigation, route }: any) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [lastOnline, setLastOnline] = React.useState<number>(0);
+
+  const {
+    data: activeUserData,
+    loading: activeUserLoading,
+    error: activeUserError,
+  } = useQuery(USER, {
+    variables: {
+      id: null,
+    },
+  });
 
   const {
     data: userData,
@@ -38,28 +53,89 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
     },
   });
 
+  const [
+    messageUpdateStatusHandel,
+    {
+      data: messagesUpdateStatusData,
+      loading: messagesUpdateStatusLoading,
+      error: messagesUpdateStatusError,
+    },
+  ] = useMutation(MESSAGE_UPDATE_STATUS);
+
+  const [
+    userLastOnlineHandel,
+    {
+      data: userLastOnlineData,
+      loading: userLastOnlineLoading,
+      error: userLastOnlineError,
+    },
+  ] = useMutation(UPDATE_LAST_USER_ONLINE);
+
   const {
     data: messageSubscriptionData,
     loading: messageSubscriptionLoading,
     error: messageSubscriptionError,
-  } = useSubscription(MESSAGE_SUBSCRIPTION, {
-    variables: {
-      roomId: route?.params?.roomId,
-    },
-  });
+  } = useSubscription(MESSAGE_SUBSCRIPTION);
+
+  const {
+    data: userLastOnlineSubscriptionData,
+    loading: userLastOnlineSubscriptionLoading,
+    error: userLastOnlineSubscriptionError,
+  } = useSubscription(LAST_USER_ONLINE_SUBSCRIPTION);
+
+  // loading
 
   React.useEffect(() => {
-    const loading = userLoading || messagesLoading;
+    const loading = userLoading || messagesLoading || activeUserLoading;
 
     setIsLoading(loading);
-  }, [userLoading, messagesLoading]);
+  }, [userLoading, messagesLoading, activeUserLoading]);
+
+  // last online
+
+  React.useEffect(() => {
+    if (userData?.getUser) {
+      const userLastOnline = userData?.getUser?.lastOnlineAt;
+
+      setLastOnline(userLastOnline && +userLastOnline);
+    }
+  }, [userData]);
+
+  // last online subscribe
+
+  React.useEffect(() => {
+    if (userLastOnlineSubscriptionData?.getUserLastOnlineSubscription) {
+      const lastOnlineUser =
+        userLastOnlineSubscriptionData?.getUserLastOnlineSubscription?.user;
+
+      return setLastOnline(
+        lastOnlineUser?.lastOnlineAt && +lastOnlineUser.lastOnlineUser
+      );
+    }
+  }, [userLastOnlineSubscriptionData]);
+
+  // check user online or not
+
+  React.useEffect(() => {
+    if (userData) {
+      const interval = setInterval(() => {
+        return (
+          updateUserLastOnlineTextHandel && updateUserLastOnlineTextHandel()
+        );
+      }, 1 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [userData]);
 
   // message subscription data
 
   React.useEffect(() => {
     if (messageSubscriptionData?.getMessageSubscription) {
       const findMessageId = messages.find((mess: any) => {
-        return mess.id === messageSubscriptionData?.getMessageSubscription?.id;
+        return (
+          mess.id ===
+          messageSubscriptionData?.getMessageSubscription?.message?.id
+        );
       });
 
       if (!findMessageId) {
@@ -74,7 +150,7 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
           query: MESSAGES,
           data: {
             getMessages: [
-              messageSubscriptionData.getMessageSubscription,
+              messageSubscriptionData.getMessageSubscription.message,
               ...data.getMessages,
             ],
           },
@@ -82,6 +158,20 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
             roomId: route?.params?.roomId,
           },
         });
+
+        // update message status
+
+        if (
+          messageSubscriptionData.getMessageSubscription.type === "CREATION"
+        ) {
+          messageUpdateStatusHandel({
+            variables: {
+              messageId:
+                messageSubscriptionData.getMessageSubscription.message.id,
+              type: "DELIVERED",
+            },
+          });
+        }
       }
     }
   }, [messageSubscriptionData]);
@@ -99,12 +189,30 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
     );
   }
 
+  const updateUserLastOnlineTextHandel = () => {
+    if (!lastOnline) {
+      return "offline";
+    }
+
+    if (lastOnline && lastOnline < 5 * 60 * 1000) {
+      return "online";
+    } else {
+      return `online ${moment(lastOnline).fromNow()}`;
+    }
+  };
+
+  const activeUserId = activeUserData?.getUser?.id;
   const userInfo = userData?.getUser;
-  const messages = messagesData.getMessages;
+  const messages = messagesData?.getMessages;
 
   return (
     <>
-      <TopUserInfo navigation={navigation} props={userInfo} />
+      <TopUserInfo
+        navigation={navigation}
+        props={userInfo}
+        isOnline={updateUserLastOnlineTextHandel()}
+      />
+
       <FlatList
         style={{
           position: "relative",
@@ -112,7 +220,13 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
         }}
         data={messages}
         renderItem={(item) => {
-          return <MessageCard props={item.item} />;
+          return (
+            <MessageCard
+              props={item.item}
+              activeUserId={activeUserId}
+              messageUpdateStatusHandel={messageUpdateStatusHandel}
+            />
+          );
         }}
         inverted
         keyExtractor={(item) => item.id.toString()}

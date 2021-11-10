@@ -11,9 +11,14 @@ interface ITopUserInfo {
     lastname: string;
     profileImage: string;
   };
+  isOnline: string | null;
 }
 
-export const TopUserInfo: React.FC<ITopUserInfo> = ({ navigation, props }) => {
+export const TopUserInfo: React.FC<ITopUserInfo> = ({
+  navigation,
+  props,
+  isOnline,
+}) => {
   const { id, firstname, lastname, profileImage } = props;
 
   return (
@@ -64,7 +69,7 @@ export const TopUserInfo: React.FC<ITopUserInfo> = ({ navigation, props }) => {
             </View>
 
             <View style={styles.cardUserStatus}>
-              <Text style={styles.userStatusText}>online</Text>
+              <Text style={styles.userStatusText}>{isOnline}</Text>
             </View>
           </View>
         </View>

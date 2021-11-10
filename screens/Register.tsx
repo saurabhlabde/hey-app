@@ -34,6 +34,8 @@ export const RegisterPage = ({ navigation }: any) => {
     },
   });
 
+  console.log(error, "error");
+
   React.useEffect(() => {
     if (error) {
       const errorMessage: any = error?.graphQLErrors[0]?.extensions?.messages;
