@@ -10,6 +10,7 @@ export const MESSAGE_SUBSCRIPTION = gql`
         status
         chatRoomID
         replyToMessageID
+        createdAtIso
         User {
           id
           firstname

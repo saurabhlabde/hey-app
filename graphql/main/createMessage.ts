@@ -5,12 +5,14 @@ export const CREATE_MESSAGE = gql`
     $content: String
     $image: String
     $chatRoomId: Float!
+    $messageReplyId:Float
   ) {
     createMessage(
       createMessage: {
         content: $content
         image: $image
         chatRoomId: $chatRoomId
+        messageReplyId: $messageReplyId
       }
     )
   }

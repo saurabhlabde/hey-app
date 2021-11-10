@@ -1,7 +1,9 @@
 import * as React from "react";
-import { FlatList, ActivityIndicator } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import moment from "moment";
+import { SwipeListView } from "react-native-swipe-list-view";
+import { Icon } from "react-native-eva-icons";
 
 // component
 import { MessageCard } from "../components/MessageCard";
@@ -22,6 +24,9 @@ import { cache } from "../apollo/config";
 export const ChatRoomPage = ({ navigation, route }: any) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [lastOnline, setLastOnline] = React.useState<number>(0);
+  const [replyMessageId, setReplyMessageId] = React.useState<number | null>(
+    null
+  );
 
   const {
     data: activeUserData,
@@ -122,7 +127,7 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
         return (
           updateUserLastOnlineTextHandel && updateUserLastOnlineTextHandel()
         );
-      }, 1 * 60 * 1000);
+      }, 5 * 60 * 1000);
       return () => clearInterval(interval);
     }
   }, [userData]);
@@ -213,13 +218,14 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
         isOnline={updateUserLastOnlineTextHandel()}
       />
 
-      <FlatList
+      <SwipeListView
         style={{
           position: "relative",
           backgroundColor: "#fbfbfb",
+          flex: 1,
         }}
         data={messages}
-        renderItem={(item) => {
+        renderItem={(item: any) => {
           return (
             <MessageCard
               props={item.item}
@@ -229,7 +235,7 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
           );
         }}
         inverted
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item: any) => item.id.toString()}
         ListHeaderComponent={() => {
           return (
             <View
@@ -240,6 +246,47 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
             />
           );
         }}
+        renderHiddenItem={(rowData, rowMap) => {
+          return (
+            <View
+              style={{
+                height: "100%",
+                width: 60,
+                alignItems: "center",
+                justifyContent: "center",
+                marginLeft: 5,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "#f5f0f0",
+                  height: 40,
+                  width: 40,
+                  borderRadius: 100,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon
+                  name={"undo-outline"}
+                  width={25}
+                  height={25}
+                  fill={"#1ba7f8"}
+                />
+              </View>
+            </View>
+          );
+        }}
+        leftOpenValue={60}
+        previewRowKey={"1"}
+        previewOpenDelay={3000}
+        disableLeftSwipe={true}
+        showsVerticalScrollIndicator={false}
+        onRowOpen={(rowKey, rowMap) => {
+          setReplyMessageId(rowMap[+rowKey]?.props.item?.id);
+
+          return rowMap[+rowKey].closeRow();
+        }}
       />
 
       <View
@@ -248,14 +295,20 @@ export const ChatRoomPage = ({ navigation, route }: any) => {
           bottom: 0,
           left: 0,
           width: "100%",
-          height: 60,
+          height: replyMessageId ? 150 : 60,
           alignItems: "center",
           justifyContent: "center",
           paddingTop: 5,
           backgroundColor: "#ffffff",
+          borderRadius: 20,
         }}
       >
-        <AddMessageInput roomId={route?.params?.roomId} />
+        <AddMessageInput
+          roomId={route?.params?.roomId}
+          messageReplyId={replyMessageId}
+          activeUserId={activeUserId}
+          setReplyMessageId={setReplyMessageId}
+        />
       </View>
     </>
   );

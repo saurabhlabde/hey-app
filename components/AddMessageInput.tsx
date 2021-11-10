@@ -1,19 +1,40 @@
 import * as React from "react";
-import { View, TextField } from "react-native-ui-lib";
-import { StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, TextField, TouchableOpacity } from "react-native-ui-lib";
+import {
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+} from "react-native";
 import { Icon } from "react-native-eva-icons";
 import { useMutation } from "@apollo/client";
+import { cache } from "../apollo/config";
+
+// component
+import { ReplyMessageInputCard } from "./ReplyMessageInputCard";
 
 // gql
 import { CREATE_MESSAGE } from "../graphql/main/createMessage";
+import { MESSAGES } from "../graphql/main/messages";
+
+// type
+import { IMessage } from "./MessageCard";
 
 interface IAddMessageInput {
   roomId: number;
+  messageReplyId: number | null;
+  activeUserId: number;
+  setReplyMessageId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-export const AddMessageInput: React.FC<IAddMessageInput> = ({ roomId }) => {
+export const AddMessageInput: React.FC<IAddMessageInput> = ({
+  roomId,
+  messageReplyId,
+  activeUserId,
+  setReplyMessageId,
+}) => {
   const [text, setText] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [replyMessage, setReplyMessage] = React.useState<IMessage | null>(null);
 
   const [
     createMessageHandel,
@@ -27,6 +48,7 @@ export const AddMessageInput: React.FC<IAddMessageInput> = ({ roomId }) => {
       content: text,
       image: null,
       chatRoomId: roomId,
+      messageReplyId: messageReplyId,
     },
   });
 
@@ -41,8 +63,29 @@ export const AddMessageInput: React.FC<IAddMessageInput> = ({ roomId }) => {
   React.useEffect(() => {
     if (createMessageData) {
       setText("");
+      setReplyMessageId(null);
+      setReplyMessage(null);
     }
   }, [createMessageData]);
+
+  // reply message
+  React.useEffect(() => {
+    if (messageReplyId) {
+      const messageData: any = cache.readQuery({
+        query: MESSAGES,
+        variables: {
+          roomId: roomId,
+        },
+      });
+      const replyMessageData = messageData?.getMessages?.find(
+        (mes: IMessage) => {
+          return mes.id === messageReplyId;
+        }
+      );
+
+      return setReplyMessage(replyMessageData);
+    }
+  }, [messageReplyId]);
 
   const addMessageHandel = () => {
     if (text?.trim() !== "") {
@@ -50,41 +93,64 @@ export const AddMessageInput: React.FC<IAddMessageInput> = ({ roomId }) => {
     }
   };
 
+  const handelReplyMessageClose = () => {
+    setReplyMessageId(null);
+    return setReplyMessage(null);
+  };
+
+  const isMe = replyMessage?.User?.id === activeUserId;
+
   return (
-    <View style={[styles.card, styles.cardMessageAdd]}>
-      <View style={[styles.cardLeft, styles.card]}>
-        <View style={[styles.buttonAddMedia]}>
-          <Icon name={"plus-circle"} width={35} height={35} fill={"#3366FF"} />
-        </View>
-
-        <View style={[styles.card, styles.cardAddMessage]}>
-          <TextField
-            placeholder="Type something"
-            style={[styles.inputAddMessage]}
-            hideUnderline={true}
-            value={text}
-            onChangeText={setText}
+    <KeyboardAvoidingView style={[styles.cardMessage]}>
+      <View style={[replyMessage && styles.cardMessageTop]}>
+        {replyMessage && (
+          <ReplyMessageInputCard
+            props={replyMessage}
+            onClose={handelReplyMessageClose}
+            isMe={isMe}
           />
+        )}
+      </View>
+      <View style={[styles.cardMessageBottom, styles.card]}>
+        <View style={[styles.cardLeft, styles.card]}>
+          <View style={[styles.buttonAddMedia]}>
+            <Icon
+              name={"plus-circle"}
+              width={35}
+              height={35}
+              fill={"#3366FF"}
+            />
+          </View>
+
+          <View style={[styles.card, styles.cardAddMessage]}>
+            <TextField
+              placeholder="Type something"
+              style={[styles.inputAddMessage]}
+              hideUnderline={true}
+              value={text}
+              onChangeText={setText}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.cardRight]}>
+          <TouchableOpacity activeOpacity={0.8} onPress={addMessageHandel}>
+            <View style={[styles.buttonAdd]}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Icon
+                  name={"rewind-right"}
+                  width={30}
+                  height={30}
+                  fill={"#ffffff"}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
-
-      <View style={[styles.cardRight]}>
-        <TouchableOpacity activeOpacity={0.8} onPress={addMessageHandel}>
-          <View style={[styles.buttonAdd]}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Icon
-                name={"rewind-right"}
-                width={30}
-                height={30}
-                fill={"#ffffff"}
-              />
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -93,21 +159,34 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
   },
 
-  cardMessageAdd: {
+  cardMessage: {
+    width: "100%",
+    flexDirection: "column",
+    flex: 1,
+    paddingLeft: 5,
+    paddingRight: 5,
+    justifyContent: "flex-end",
+    marginBottom: 20,
+  },
+
+  cardMessageTop: {
+    height: "auto",
+    width: "100%",
+    paddingLeft: 8,
+    paddingRight: 8,
+  },
+
+  cardMessageBottom: {
     height: 50,
-    marginBottom: 10,
-    marginLeft: 5,
-    marginRight: 5,
+    paddingLeft: 8,
+    paddingRight: 8,
   },
 
   cardLeft: {
-    flex: 1,
-    // backgroundColor: "#f3e7e7",
     borderRadius: 50,
-    paddingLeft: 8,
-    paddingRight: 8,
     paddingTop: 6,
     justifyContent: "space-between",
+    flex: 1,
   },
 
   cardRight: {
